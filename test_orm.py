@@ -1,4 +1,25 @@
 import model
+import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session
+from orm import metadata, start_mappers
+
+
+start_mappers()
+
+
+@pytest.fixture
+def session():
+
+    engine = create_engine("sqlite://")
+    metadata.create_all(engine)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    yield session
+
+    metadata.drop_all(engine)
+    session.close()
 
 
 def test_orderline_mapper_can_load_lines(session):
@@ -6,7 +27,7 @@ def test_orderline_mapper_can_load_lines(session):
         "INSERT INTO order_lines (orderid, sku, qty) VALUES "
         '("order1", "RED-CHAIR", 12),'
         '("order1", "RED-CHAIR", 13),'
-        '("order2", "BLUE_LIPSTICK", 14),'
+        '("order2", "BLUE_LIPSTICK", 14)'
     )
 
 

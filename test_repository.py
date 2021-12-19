@@ -1,5 +1,25 @@
 import model
+import pytest
 import repository
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session
+from orm import metadata, start_mappers
+
+start_mappers()
+
+
+@pytest.fixture
+def session():
+
+    engine = create_engine("sqlite://")
+    metadata.create_all(engine)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    yield session
+
+    metadata.drop_all(engine)
+    session.close()
 
 
 def test_repository_can_save_a_batch(session):
