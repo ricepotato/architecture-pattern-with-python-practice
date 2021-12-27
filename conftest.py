@@ -13,16 +13,16 @@ import config
 
 
 @pytest.fixture
-def in_memory_db():
-    engine = create_engine("sqlite:///:memory:")
+def sqlite_db():
+    engine = create_engine("sqlite:///db.sqlite")
     metadata.create_all(engine)
     return engine
 
 
 @pytest.fixture
-def session(in_memory_db):
+def session(sqlite_db):
     start_mappers()
-    yield sessionmaker(bind=in_memory_db)()
+    yield sessionmaker(bind=sqlite_db)()
     clear_mappers()
 
 
@@ -63,24 +63,24 @@ def postgres_session(postgres_db):
 
 
 @pytest.fixture
-def add_stock(postgres_session):
+def add_stock(session):
     batches_added = set()
     skus_added = set()
 
     def _add_stock(lines):
         for ref, sku, qty, eta in lines:
-            postgres_session.execute(
+            session.execute(
                 "INSERT INTO batches (reference, sku, _purchased_quantity, eta)"
                 " VALUES (:ref, :sku, :qty, :eta)",
                 dict(ref=ref, sku=sku, qty=qty, eta=eta),
             )
-            [[batch_id]] = postgres_session.execute(
+            [[batch_id]] = session.execute(
                 "SELECT id FROM batches WHERE reference=:ref AND sku=:sku",
                 dict(ref=ref, sku=sku),
             )
             batches_added.add(batch_id)
             skus_added.add(sku)
-        postgres_session.commit()
+        session.commit()
 
     yield _add_stock
 
