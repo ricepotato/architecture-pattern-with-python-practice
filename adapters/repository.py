@@ -1,5 +1,6 @@
 import abc
 import domain.model as model
+from typing import List
 
 
 class AbstractRepository(abc.ABC):
@@ -9,6 +10,10 @@ class AbstractRepository(abc.ABC):
 
     @abc.abstractmethod
     def get(self, reference) -> model.Batch:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def list(self) -> List[model.Batch]:
         raise NotImplementedError
 
 
@@ -22,7 +27,7 @@ class SqlAlchemyRepository(AbstractRepository):
     def get(self, reference):
         return self.session.query(model.Batch).filter_by(reference=reference).one()
 
-    def list(self):
+    def list(self) -> List[model.Batch]:
         return self.session.query(model.Batch).all()
 
 
@@ -36,5 +41,5 @@ class FakeRepository(AbstractRepository):
     def get(self, reference):
         return next(b for b in self._batches if b.reference == reference)
 
-    def list(self):
+    def list(self) -> List[model.Batch]:
         return list(self._batches)

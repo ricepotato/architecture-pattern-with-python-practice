@@ -1,7 +1,7 @@
 import datetime
 import domain.model as model
 import pytest
-from adapters.repository import FakeRepository
+from adapters.repository import AbstractRepository
 import service_layer.services as services
 
 
@@ -12,20 +12,26 @@ class FakeSession:
         self.commited = True
 
 
+class FakeRepository(set):
+    @staticmethod
+    def for_batch(ref, sku, qty, eta=None):
+        return FakeRepository([model.Batch(ref, sku, qty, eta)])
+
+    def list(self):
+        return list(self)
+
+
 def test_returns_allocation():
     # line = model.OrderLine("o1", "COMPLICATAED-LAMP", 10)
-    batch = model.Batch("b1", "COMPLICATAED-LAMP", 100, eta=None)
-    repo = FakeRepository([batch])
-
+    repo = FakeRepository.for_batch("b1", "COMPLICATAED-LAMP", 100, eta=None)
     result = services.allocate("o1", "COMPLICATAED-LAMP", 10, repo, FakeSession())
     assert result == "b1"
 
 
 def test_error_for_invalid_sku():
     # line = model.OrderLine("o1", "NONEXISTENTSKU", 10)
-    batch = model.Batch("b1", "AREALSKU", 100, eta=None)
-    repo = FakeRepository([batch])
-
+    # batch = model.Batch("b1", "AREALSKU", 100, eta=None)
+    repo = FakeRepository.for_batch("b1", "AREALSKU", 100, eta=None)
     with pytest.raises(services.InvalidSku, match="Invalid sku NONEXISTENTSKU"):
         services.allocate("o1", "NONEXISTENTSKU", 10, repo, FakeSession())
 
