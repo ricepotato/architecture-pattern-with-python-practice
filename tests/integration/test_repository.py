@@ -1,9 +1,9 @@
-import model
+import domain.model as model
 import pytest
-import repository
+import adapters.repository as repository
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
-from orm import metadata, start_mappers
+from adapters.orm import metadata, start_mappers
 
 
 def test_repository_can_save_a_batch(session):

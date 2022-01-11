@@ -3,9 +3,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 import config
-import model
-import orm
-import repository
+import domain.model as model
+import adapters.orm as orm
+import adapters.repository as repository
 
 
 orm.start_mappers()
