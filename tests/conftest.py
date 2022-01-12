@@ -4,8 +4,9 @@ import requests
 from pathlib import Path
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, clear_mappers
+from sqlalchemy.orm import sessionmaker, clear_mappers, Session
 from sqlalchemy.exc import OperationalError
+
 
 from adapters.orm import metadata, start_mappers
 
@@ -15,6 +16,7 @@ import config
 @pytest.fixture
 def sqlite_db():
     engine = create_engine("sqlite:///db.sqlite")
+    metadata.drop_all(engine)
     metadata.create_all(engine)
     return engine
 
@@ -23,6 +25,13 @@ def sqlite_db():
 def session(sqlite_db):
     start_mappers()
     yield sessionmaker(bind=sqlite_db)()
+    clear_mappers()
+
+
+@pytest.fixture
+def session_factory(sqlite_db):
+    start_mappers()
+    yield sessionmaker(bind=sqlite_db)
     clear_mappers()
 
 
