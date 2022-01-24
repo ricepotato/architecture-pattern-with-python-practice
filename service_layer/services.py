@@ -37,3 +37,13 @@ def add_batch(
     with uow:
         uow.batches.add(model.Batch(ref, sku, qty, eta))
         uow.commit()
+
+
+def reallocate(line: model.OrderLine, uow: unit_of_work.AbstractUnitOfWork) -> str:
+    with uow:
+        batch = uow.batches.get(sku=line.sku)
+        if batch is None:
+            raise InvalidSku(f"Invalid sku {line.sku}")
+        batch.deallocate(line)
+        allocate(line)
+        uow.commit()
