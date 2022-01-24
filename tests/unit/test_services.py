@@ -23,9 +23,20 @@ class FakeRepository(set):
         return next(b for b in self if b.reference == reference)
 
 
+class FakeProductRepository:
+    def __init__(self, products):
+        self._products = set(products)
+
+    def add(self, product):
+        self._products.add(product)
+
+    def get(self, sku):
+        return next((p for p in self._products if p.sku == sku), None)
+
+
 class FakeUnitOfWork(services.unit_of_work.AbstractUnitOfWork):
     def __init__(self):
-        self.batches = FakeRepository([])
+        self.products = FakeProductRepository([])
         self.commited = False
 
     def commit(self):
@@ -69,14 +80,27 @@ def test_prefers_warehouse_batches_to_shipments():
     services.add_batch("shipment-batch", "RETRO-CLOCK", 100, tomorrow, uow)
     services.allocate("oref", "RETRO-CLOCK", 10, uow)
 
-    assert uow.batches.get("in-stock-batch").available_quantity == 90
-    assert uow.batches.get("shipment-batch").available_quantity == 100
+    batch = next(
+        b
+        for b in uow.products.get("RETRO-CLOCK").batches
+        if b.reference == "in-stock-batch"
+    )
+    assert batch.available_quantity == 90
+    batch = next(
+        b
+        for b in uow.products.get("RETRO-CLOCK").batches
+        if b.reference == "shipment-batch"
+    )
+    assert batch.available_quantity == 100
 
 
 def test_add_batch():
     uow = FakeUnitOfWork()
     services.add_batch("b1", "CRUNCHY-ARMCHAIR", 100, None, uow)
-    assert uow.batches.get("b1") is not None
+    batch = [
+        b for b in uow.products.get("CRUNCHY-ARMCHAIR").batches if b.reference == "b1"
+    ]
+    assert batch is not None
     assert uow.commited
 
 

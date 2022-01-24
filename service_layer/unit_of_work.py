@@ -1,13 +1,12 @@
 import abc
 import config
-from typing import Generator
 from adapters import repository
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, session
+from sqlalchemy.orm import sessionmaker
 
 
 class AbstractUnitOfWork(abc.ABC):
-    batches: repository.AbstractRepository
+    products: repository.AbstractProductRepository
 
     def __enter__(self):
         pass

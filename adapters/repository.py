@@ -43,3 +43,11 @@ class FakeRepository(AbstractRepository):
 
     def list(self) -> List[model.Batch]:
         return list(self._batches)
+
+
+class AbstractProductRepository(abc.ABC):
+    def add(self, product):
+        pass
+
+    def get(self, sku) -> model.Product:
+        pass

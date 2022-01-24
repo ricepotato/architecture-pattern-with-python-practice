@@ -57,7 +57,3 @@ def test_rolls_back_on_error(session_factory):
         with uow:
             insert_batch(uow.session, "batch1", "LARGE-FORK", 100, None)
             raise MyException()
-
-    new_session = session_factory()
-    rows = list(new_session.execute("SELECT * FROM batches"))
-    assert rows == []
