@@ -4,16 +4,29 @@ from typing import List
 
 
 class AbstractRepository(abc.ABC):
+    def __init__(self):
+        self.seen = set()
+
+    def add(self, product: model.Product):
+        self._add(product)
+        self.seen.add(product)
+
+    def get(self, sku) -> model.Product:
+        product = self._get(sku)
+        if product:
+            self.seen.add(product)
+        return product
+
     @abc.abstractmethod
-    def add(self, batch: model.Batch):
+    def _add(self, product: model.Product):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get(self, reference) -> model.Batch:
+    def _get(self, sku) -> model.Product:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def list(self) -> List[model.Batch]:
+    def list(self) -> List[model.Product]:
         raise NotImplementedError
 
 
@@ -21,11 +34,11 @@ class SqlAlchemyRepository(AbstractRepository):
     def __init__(self, session):
         self.session = session
 
-    def add(self, batch):
-        self.session.add(batch)
+    def _add(self, product: model.Product):
+        self.session.add(product)
 
-    def get(self, reference):
-        return self.session.query(model.Batch).filter_by(reference=reference).one()
+    def _get(self, sku) -> model.Product:
+        return self.session.query(model.Product).filter_by(sku=sku).first()
 
     def list(self) -> List[model.Batch]:
         return self.session.query(model.Batch).all()

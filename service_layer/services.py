@@ -1,7 +1,6 @@
 from typing import Optional
 from datetime import date
 import domain.model as model
-from adapters.repository import AbstractRepository
 from . import unit_of_work
 
 
@@ -23,7 +22,7 @@ def allocate(
             raise InvalidSku(f"Invalid sku {line.sku}")
         batchref = product.allocate(line)
         uow.commit()
-    return batchref
+        return batchref
 
 
 def add_batch(

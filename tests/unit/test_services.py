@@ -1,6 +1,8 @@
 import datetime
 import domain.model as model
 import pytest
+from typing import List
+from adapters import repository
 from service_layer import services
 
 
@@ -11,39 +13,31 @@ class FakeSession:
         self.committed = True
 
 
-class FakeRepository(set):
-    @staticmethod
-    def for_batch(ref, sku, qty, eta=None):
-        return FakeRepository([model.Batch(ref, sku, qty, eta)])
-
-    def list(self):
-        return list(self)
-
-    def get(self, reference):
-        return next(b for b in self if b.reference == reference)
-
-
-class FakeProductRepository:
+class FakeRepository(repository.AbstractRepository):
     def __init__(self, products):
+        super().__init__()
         self._products = set(products)
 
-    def add(self, product):
+    def _add(self, product: model.Product):
         self._products.add(product)
 
-    def get(self, sku):
+    def _get(self, sku) -> model.Product:
         return next((p for p in self._products if p.sku == sku), None)
+
+    def list(self) -> List[model.Product]:
+        return super().list()
 
 
 class FakeUnitOfWork(services.unit_of_work.AbstractUnitOfWork):
     def __init__(self):
-        self.products = FakeProductRepository([])
+        self.products = FakeRepository([])
         self.commited = False
-
-    def commit(self):
-        self.commited = True
 
     def rollback(self):
         pass
+
+    def _commit(self):
+        self.commited = True
 
 
 def test_returns_allocation():
