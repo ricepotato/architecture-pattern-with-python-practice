@@ -4,11 +4,9 @@ from adapters import repository
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from service_layer import message_bus
-
 
 class AbstractUnitOfWork(abc.ABC):
-    products: repository.AbstractProductRepository
+    products: repository.AbstractRepository
 
     def __enter__(self):
         pass
@@ -23,11 +21,10 @@ class AbstractUnitOfWork(abc.ABC):
     def rollback(self):
         raise NotImplementedError
 
-    def publish_events(self):
+    def collect_new_events(self):
         for product in self.products.seen:
             while product.events:
-                event = product.events.pop(0)
-                message_bus.handle(event)
+                yield product.events.pop(0)
 
     @abc.abstractmethod
     def _commit(self):
