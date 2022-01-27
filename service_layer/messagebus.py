@@ -1,6 +1,11 @@
 from domain import events
 from service_layer import unit_of_work
-from service_layer.handler import send_out_of_stock_notification, add_batch, allocate
+from service_layer.handler import (
+    change_batch_quantity,
+    send_out_of_stock_notification,
+    add_batch,
+    allocate,
+)
 
 
 def handle(event: events.Event, uow: unit_of_work.AbstractUnitOfWork):
@@ -18,4 +23,5 @@ HANDLERS = {
     events.OutOfStock: [send_out_of_stock_notification],
     events.BatchCreated: [add_batch],
     events.AllocationRequired: [allocate],
+    events.BatchQuantityChanged: [change_batch_quantity],
 }

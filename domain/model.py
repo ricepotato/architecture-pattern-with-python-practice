@@ -70,6 +70,9 @@ class Batch:
     def can_allocate(self, line: OrderLine) -> bool:
         return self.sku == line.sku and self.available_quantity >= line.qty
 
+    def deallocate_one(self) -> OrderLine:
+        return self._allocations.pop()
+
 
 class Product:
     def __init__(self, sku: str, batches: List[Batch], version_number: int = 0):
@@ -87,3 +90,12 @@ class Product:
         except StopIteration:
             self.events.append(events.OutOfStock(line.sku))
             return None
+
+    def change_batch_quantity(self, ref: str, qty: int):
+        batch = next(b for b in self.batches if b.reference == ref)
+        batch._purchased_quantity = qty
+        while batch.available_quantity < 0:
+            line = batch.deallocate_one()
+            self.events.append(
+                events.AllocationRequired(line.orderid, line.sku, line.qty)
+            )
